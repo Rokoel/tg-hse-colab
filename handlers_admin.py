@@ -1,4 +1,4 @@
-# handlers_admin.py
+
 from aiogram import Router, types
 from aiogram.filters import Command
 from config import ADMIN_CHAT_ID, STRINGS

@@ -1,4 +1,3 @@
-# utils.py
 import re
 from typing import Optional
 from config import PROFILE_PHOTOS_DIR, ID_PHOTOS_DIR

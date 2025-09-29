@@ -1,8 +1,6 @@
-# handlers_user.py
 import os
-import math
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any
 from aiogram import Router, types, Bot, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -15,8 +13,7 @@ from db import (create_or_update_user, get_user, set_verification_status,
                 save_id_upload, get_verified_pool, list_events, set_user_event,
                 clear_user_events, get_user_events, ensure_events, like_user,
                 is_mutual, like_user as db_like_user, unlike_user)
-import json
-import time
+
 
 router = Router()
 bot = Bot(token=BOT_TOKEN)
