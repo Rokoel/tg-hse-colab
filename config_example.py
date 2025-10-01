@@ -1,8 +1,11 @@
+# config.py
 from pathlib import Path
 
+# Bot / Admin placeholders - replace with real values
 BOT_TOKEN = "PUT_YOUR_BOT_TOKEN_HERE"
 ADMIN_CHAT_ID = 12345678910  # group chat id where admins will review verifications
 
+# Local storage
 BASE_DIR = Path(__file__).parent
 MEDIA_DIR = BASE_DIR / "media"
 PROFILE_PHOTOS_DIR = MEDIA_DIR / "profiles"
@@ -10,6 +13,7 @@ ID_PHOTOS_DIR = MEDIA_DIR / "ids"
 for d in (MEDIA_DIR, PROFILE_PHOTOS_DIR, ID_PHOTOS_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
+# Strings (all user-facing strings -> russian)
 STRINGS = {
     "start_welcome": (
         "Привет! Это бот для знакомства студентов.\n"
@@ -58,6 +62,7 @@ STRINGS = {
     "cancel_button": "/cancel"
 }
 
+# Initial editable events (admins can add/remove later)
 EVENTS = [
     "Кино",
     "Музей",
