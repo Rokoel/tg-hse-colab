@@ -7,12 +7,13 @@ A Telegram bot for helping students network and connect with each other based on
 - **User Registration**: Multi-step registration process collecting course, program, age, name, description, and optional photo
 - **Profile Management**: View and edit profile information
 - **Event Interests**: Select types of events users are interested in (Cinema, Museums, Theatre, etc.)
-- **Verification System**: Admin-moderated verification using student ID photos
+- **Optional Verification System**: Admin-moderated verification using student ID photos (users can search without verification)
 - **Smart Matching**: Algorithm that matches users based on:
+  - Verification status (verified users shown first)
   - Event interests (primary)
   - Study program similarity (secondary)
   - Age proximity (tertiary)
-- **Like/Dislike System**: Browse verified users and like/dislike profiles
+- **Like/Dislike System**: Browse all users (verified and unverified) and like/dislike profiles
 - **Match Notifications**: Both users are notified when they like each other
 - **Admin Panel**: Approve, deny, or ban users through an admin group chat
 
@@ -101,8 +102,8 @@ python main.py
 3. **View Profile**: See your profile as others see it
 4. **Edit Profile**: Update any field of your profile
 5. **Choose Events**: Select event types you're interested in
-6. **Verify**: Submit student ID photo for verification
-7. **Search**: Once verified, browse other verified users
+6. **Search**: Browse other users immediately (no verification required)
+7. **Verify** (Optional): Submit student ID photo for verified status and higher visibility
 8. **Like/Dislike**: Swipe through profiles
 9. **Match**: Get notified when someone likes you back
 
@@ -161,9 +162,12 @@ The bot automatically manages photos:
 
 Users are sorted by compatibility score:
 
-1. **Event Interests** (10 points per match): Primary matching factor
-2. **Program Similarity** (5 points exact, 2 points partial): Secondary factor
-3. **Age Proximity** (up to 5 points): Tertiary factor
+1. **Verification Status** (100 points): Verified users appear first in search results
+2. **Event Interests** (10 points per match): Primary matching factor
+3. **Program Similarity** (5 points exact, 2 points partial): Secondary factor
+4. **Age Proximity** (up to 5 points): Tertiary factor
+
+All users can search and be found regardless of verification status, but verified profiles get priority placement.
 
 ## Commands
 

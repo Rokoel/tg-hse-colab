@@ -219,10 +219,10 @@ def get_potential_matches(user_id: int) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     
     # Get users that haven't been liked or disliked yet, excluding self
+    # Now includes all users regardless of verification status
     cursor.execute('''
         SELECT * FROM users
         WHERE user_id != ?
-        AND verification_status = 'verified'
         AND is_banned = 0
         AND user_id NOT IN (
             SELECT to_user_id FROM likes WHERE from_user_id = ?
@@ -245,6 +245,9 @@ def get_potential_matches(user_id: int) -> List[Dict[str, Any]]:
     user_events = set(user['events'])
     
     def compatibility_score(other_user):
+        # Verification bonus (highest priority - verified users shown first)
+        verification_bonus = 100 if other_user['verification_status'] == 'verified' else 0
+        
         # Events similarity (primary)
         other_events = set(other_user['events'])
         events_score = len(user_events & other_events) * 10
@@ -260,7 +263,7 @@ def get_potential_matches(user_id: int) -> List[Dict[str, Any]]:
         age_diff = abs(user['age'] - other_user['age'])
         age_score = max(0, 5 - age_diff)
         
-        return events_score + program_score + age_score
+        return verification_bonus + events_score + program_score + age_score
     
     users.sort(key=compatibility_score, reverse=True)
     return users[:config.MAX_PROFILES_PER_SEARCH]

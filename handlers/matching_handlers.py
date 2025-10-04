@@ -17,12 +17,7 @@ async def begin_search(message: Message, state: FSMContext):
     if not user:
         return
     
-    # Check if verified
-    if user['verification_status'] != 'verified':
-        await message.answer("Сначала необходимо пройти верификацию!")
-        return
-    
-    # Get potential matches
+    # Get potential matches (no verification required)
     potential_matches = db.get_potential_matches(message.from_user.id)
     
     if not potential_matches:
@@ -152,7 +147,8 @@ async def show_profile_at_index(message: Message, state: FSMContext, index: int)
         return
     
     profile = matches[index]
-    profile_text = strings.MATCHING_PROFILE + "\n\n" + utils.format_profile(profile, show_verification=False)
+    # Show verification status when viewing other profiles
+    profile_text = strings.MATCHING_PROFILE + "\n\n" + utils.format_profile(profile, show_verification=True)
     
     # Determine which navigation buttons to show
     has_previous = index > 0

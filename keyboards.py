@@ -42,6 +42,10 @@ def get_main_menu_keyboard(verification_status: str) -> ReplyKeyboardMarkup:
     builder.add(KeyboardButton(text=strings.BTN_EDIT_PROFILE))
     builder.add(KeyboardButton(text=strings.BTN_CHOOSE_EVENTS))
     
+    # Always show search button
+    builder.add(KeyboardButton(text=strings.BTN_BEGIN_SEARCH))
+    
+    # Show appropriate verification button
     if verification_status == 'not_verified':
         builder.add(KeyboardButton(text=strings.BTN_VERIFY_PROFILE))
     elif verification_status == 'pending':
@@ -49,7 +53,7 @@ def get_main_menu_keyboard(verification_status: str) -> ReplyKeyboardMarkup:
     elif verification_status == 'denied':
         builder.add(KeyboardButton(text="❌ Повторить верификацию"))
     elif verification_status == 'verified':
-        builder.add(KeyboardButton(text=strings.BTN_BEGIN_SEARCH))
+        builder.add(KeyboardButton(text="✅ Верифицирован"))
     
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)

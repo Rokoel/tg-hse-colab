@@ -11,7 +11,7 @@ import config
 router = Router()
 
 
-@router.message(F.text.in_([strings.BTN_VERIFY_PROFILE, "❌ Повторить верификацию"]))
+@router.message(F.text.in_([strings.BTN_VERIFY_PROFILE, "❌ Повторить верификацию", "✅ Верифицирован"]))
 async def start_verification(message: Message, state: FSMContext):
     """Start verification process"""
     user = db.get_user(message.from_user.id)
@@ -20,7 +20,10 @@ async def start_verification(message: Message, state: FSMContext):
     
     # Check if already verified
     if user['verification_status'] == 'verified':
-        await message.answer("Вы уже верифицированы!")
+        await message.answer(
+            "✅ Вы уже верифицированы!",
+            reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
+        )
         return
     
     await message.answer(
