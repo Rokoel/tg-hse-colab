@@ -20,14 +20,14 @@ async def cmd_start(message: Message, state: FSMContext):
     
     # Check if user is banned
     if db.user_exists(message.from_user.id) and db.is_user_banned(message.from_user.id):
-        await message.answer("🚫 Вы заблокированы и не можете использовать бота.")
+        await message.answer(strings.USER_BLOCKED_MESSAGE)
         return
     
     # Check if user already registered
     if db.user_exists(message.from_user.id):
         user = db.get_user(message.from_user.id)
         await message.answer(
-            "Вы уже зарегистрированы!",
+            strings.USER_ALREADY_REGISTERED,
             reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
         )
         return
@@ -38,18 +38,76 @@ async def cmd_start(message: Message, state: FSMContext):
         await message.answer_document(
             document=policy_file,
             caption=strings.WELCOME_MESSAGE,
-            reply_markup=kb.get_start_keyboard()
+            reply_markup=kb.get_accept_privacy_keyboard()
         )
     else:
         await message.answer(
             strings.WELCOME_MESSAGE,
-            reply_markup=kb.get_start_keyboard()
+            reply_markup=kb.get_accept_privacy_keyboard()
         )
 
-
 @router.message(F.text == strings.BTN_BEGIN_REGISTRATION)
-async def begin_registration(message: Message, state: FSMContext):
-    """Start registration process"""
+async def accept_privacy(message: Message, state: FSMContext):
+    """User accepted privacy policy, start registration"""
+    await message.answer(
+        strings.REG_NAME_QUESTION,
+        reply_markup=kb.get_cancel_keyboard()
+    )
+    await state.set_state(RegistrationStates.waiting_for_name)
+
+@router.message(RegistrationStates.waiting_for_name)
+async def process_name(message: Message, state: FSMContext):
+    """Process name input"""
+    if message.text == strings.BTN_CANCEL:
+        await cancel_registration(message, state)
+        return
+    
+    await state.update_data(name=message.text)
+    await message.answer(
+        strings.REG_AGE_QUESTION.format(name=message.text),
+        reply_markup=kb.get_cancel_keyboard()
+    )
+    await state.set_state(RegistrationStates.waiting_for_age)
+
+
+@router.message(RegistrationStates.waiting_for_age)
+async def process_age(message: Message, state: FSMContext):
+    """Process age input"""
+    if message.text == strings.BTN_CANCEL:
+        await cancel_registration(message, state)
+        return
+    
+    age = utils.validate_age(message.text)
+    if age is None:
+        await message.answer(
+            strings.ERROR_INVALID_AGE,
+            reply_markup=kb.get_cancel_keyboard()
+        )
+        return
+    
+    await state.update_data(age=age)
+    await message.answer(
+        strings.REG_DESCRIPTION_QUESTION,
+        reply_markup=kb.get_cancel_keyboard()
+    )
+    await state.set_state(RegistrationStates.waiting_for_description)
+
+
+@router.message(RegistrationStates.waiting_for_description)
+async def process_description(message: Message, state: FSMContext):
+    """Process description input"""
+    if message.text == strings.BTN_CANCEL:
+        await cancel_registration(message, state)
+        return
+    
+    if not utils.validate_description(message.text):
+        await message.answer(
+            strings.ERROR_INVALID_DESCRIPTION,
+            reply_markup=kb.get_cancel_keyboard()
+        )
+        return
+    
+    await state.update_data(description=message.text)
     await message.answer(
         strings.REG_COURSE_QUESTION,
         reply_markup=kb.get_course_keyboard()
@@ -88,66 +146,6 @@ async def process_program(message: Message, state: FSMContext):
     
     await state.update_data(program=message.text)
     await message.answer(
-        strings.REG_AGE_QUESTION,
-        reply_markup=kb.get_cancel_keyboard()
-    )
-    await state.set_state(RegistrationStates.waiting_for_age)
-
-
-@router.message(RegistrationStates.waiting_for_age)
-async def process_age(message: Message, state: FSMContext):
-    """Process age input"""
-    if message.text == strings.BTN_CANCEL:
-        await cancel_registration(message, state)
-        return
-    
-    age = utils.validate_age(message.text)
-    if age is None:
-        await message.answer(
-            strings.ERROR_INVALID_AGE,
-            reply_markup=kb.get_cancel_keyboard()
-        )
-        return
-    
-    await state.update_data(age=age)
-    await message.answer(
-        strings.REG_NAME_QUESTION,
-        reply_markup=kb.get_cancel_keyboard()
-    )
-    await state.set_state(RegistrationStates.waiting_for_name)
-
-
-@router.message(RegistrationStates.waiting_for_name)
-async def process_name(message: Message, state: FSMContext):
-    """Process name input"""
-    if message.text == strings.BTN_CANCEL:
-        await cancel_registration(message, state)
-        return
-    
-    await state.update_data(name=message.text)
-    await message.answer(
-        strings.REG_DESCRIPTION_QUESTION,
-        reply_markup=kb.get_cancel_keyboard()
-    )
-    await state.set_state(RegistrationStates.waiting_for_description)
-
-
-@router.message(RegistrationStates.waiting_for_description)
-async def process_description(message: Message, state: FSMContext):
-    """Process description input"""
-    if message.text == strings.BTN_CANCEL:
-        await cancel_registration(message, state)
-        return
-    
-    if not utils.validate_description(message.text):
-        await message.answer(
-            strings.ERROR_INVALID_DESCRIPTION,
-            reply_markup=kb.get_cancel_keyboard()
-        )
-        return
-    
-    await state.update_data(description=message.text)
-    await message.answer(
         strings.REG_PHOTO_QUESTION,
         reply_markup=kb.get_skip_photo_keyboard()
     )
@@ -168,7 +166,7 @@ async def process_photo(message: Message, state: FSMContext):
 
 
 @router.message(RegistrationStates.waiting_for_photo)
-async def invalid_photo(message: Message):
+async def invalid_photo(message: Message, state: FSMContext):
     """Handle invalid photo input"""
     if message.text == strings.BTN_CANCEL:
         await cancel_registration(message, state)
@@ -201,7 +199,7 @@ async def complete_registration(message: Message, state: FSMContext, photo_id: s
     
     await utils.send_profile_with_photo(message, user, profile_text)
     await message.answer(
-        "Выберите действие:",
+        strings.REG_COMPLETE_CHOOSE_ACTION.format(name=data['name']),
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
     )
     

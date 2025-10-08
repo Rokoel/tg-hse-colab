@@ -15,7 +15,7 @@ async def view_profile(message: Message):
     """View user profile"""
     user = db.get_user(message.from_user.id)
     if not user:
-        await message.answer("Профиль не найден. Используйте /start")
+        await message.answer(strings.PROFILE_NOT_FOUND)
         return
     
     profile_text = utils.format_profile(user)
@@ -82,7 +82,7 @@ async def process_edit_program(message: Message, state: FSMContext):
 async def edit_age(message: Message, state: FSMContext):
     """Edit age"""
     await message.answer(
-        strings.REG_AGE_QUESTION,
+        strings.EDIT_AGE_QUESTION,
         reply_markup=kb.get_cancel_keyboard()
     )
     await state.set_state(EditProfileStates.editing_age)
@@ -108,7 +108,7 @@ async def process_edit_age(message: Message, state: FSMContext):
 async def edit_name(message: Message, state: FSMContext):
     """Edit name"""
     await message.answer(
-        strings.REG_NAME_QUESTION,
+        strings.EDIT_NAME_QUESTION,
         reply_markup=kb.get_cancel_keyboard()
     )
     await state.set_state(EditProfileStates.editing_name)
@@ -239,7 +239,7 @@ async def save_events(callback: CallbackQuery, state: FSMContext):
     user = db.get_user(callback.from_user.id)
     await callback.message.edit_text(strings.EVENTS_SELECTED)
     await callback.message.answer(
-        "Выберите действие:",
+        "Выбери действие:",
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
     )
     await state.clear()

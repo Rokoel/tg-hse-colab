@@ -55,7 +55,7 @@ async def approve_verification(callback: CallbackQuery):
         from keyboards import get_main_menu_keyboard
         await callback.bot.send_message(
             chat_id=user_id,
-            text="Выберите действие:",
+            text="Выбери действие:",
             reply_markup=get_main_menu_keyboard(user_updated['verification_status'])
         )
     except Exception:
@@ -106,7 +106,7 @@ async def deny_verification(callback: CallbackQuery):
         from keyboards import get_main_menu_keyboard
         await callback.bot.send_message(
             chat_id=user_id,
-            text="Выберите действие:",
+            text="Выбери действие:",
             reply_markup=get_main_menu_keyboard(user_updated['verification_status'])
         )
     except Exception:

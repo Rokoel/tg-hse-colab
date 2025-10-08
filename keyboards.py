@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 import strings
 
 
-def get_start_keyboard() -> ReplyKeyboardMarkup:
+def get_accept_privacy_keyboard() -> ReplyKeyboardMarkup:
     """Keyboard for start command"""
     builder = ReplyKeyboardBuilder()
     builder.add(KeyboardButton(text=strings.BTN_BEGIN_REGISTRATION))
@@ -49,11 +49,11 @@ def get_main_menu_keyboard(verification_status: str) -> ReplyKeyboardMarkup:
     if verification_status == 'not_verified':
         builder.add(KeyboardButton(text=strings.BTN_VERIFY_PROFILE))
     elif verification_status == 'pending':
-        builder.add(KeyboardButton(text="⏳ Проверка"))
+        builder.add(KeyboardButton(text=strings.BTN_VERIFICATION_PENDING))
     elif verification_status == 'denied':
-        builder.add(KeyboardButton(text="❌ Повторить верификацию"))
+        builder.add(KeyboardButton(text=strings.BTN_RETRY_VERIFICATION))
     elif verification_status == 'verified':
-        builder.add(KeyboardButton(text="✅ Верифицирован"))
+        builder.add(KeyboardButton(text=strings.BTN_ALREADY_VERIFIED))
     
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)

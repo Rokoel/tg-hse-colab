@@ -3,11 +3,11 @@ from aiogram.fsm.state import State, StatesGroup
 
 class RegistrationStates(StatesGroup):
     """States for user registration"""
+    waiting_for_name = State()
+    waiting_for_age = State()
+    waiting_for_description = State()
     waiting_for_course = State()
     waiting_for_program = State()
-    waiting_for_age = State()
-    waiting_for_name = State()
-    waiting_for_description = State()
     waiting_for_photo = State()
 
 

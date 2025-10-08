@@ -11,7 +11,7 @@ import config
 router = Router()
 
 
-@router.message(F.text.in_([strings.BTN_VERIFY_PROFILE, "❌ Повторить верификацию", "✅ Верифицирован"]))
+@router.message(F.text.in_([strings.BTN_VERIFY_PROFILE, strings.BTN_RETRY_VERIFICATION, strings.BTN_ALREADY_VERIFIED]))
 async def start_verification(message: Message, state: FSMContext):
     """Start verification process"""
     user = db.get_user(message.from_user.id)
@@ -21,7 +21,7 @@ async def start_verification(message: Message, state: FSMContext):
     # Check if already verified
     if user['verification_status'] == 'verified':
         await message.answer(
-            "✅ Вы уже верифицированы!",
+            strings.USER_ALREADY_VERIFIED,
             reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
         )
         return
@@ -33,7 +33,7 @@ async def start_verification(message: Message, state: FSMContext):
     await state.set_state(VerificationStates.waiting_for_student_id)
 
 
-@router.message(F.text == "⏳ Проверка")
+@router.message(F.text == strings.BTN_VERIFICATION_PENDING)
 async def check_verification_status(message: Message):
     """Check verification status"""
     user = db.get_user(message.from_user.id)
@@ -42,7 +42,7 @@ async def check_verification_status(message: Message):
     
     if user['verification_status'] == 'pending':
         await message.answer(
-            "Ваша заявка на рассмотрении. Пожалуйста, подождите решения администрации.",
+            strings.VERIFICATION_MESSAGE_PENDING,
             reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
         )
 
