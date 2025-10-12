@@ -5,7 +5,7 @@ import database as db
 import strings
 import keyboards as kb
 import utils
-from states import VerificationStates
+from states import VerificationStates, StartStates
 import config
 
 router = Router()
@@ -71,7 +71,7 @@ async def process_student_id(message: Message, state: FSMContext):
         strings.VERIFY_SUBMITTED,
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
     )
-    await state.clear()
+    await state.set_state(StartStates.start)
 
 
 @router.message(VerificationStates.waiting_for_student_id)
@@ -79,7 +79,7 @@ async def invalid_student_id(message: Message, state: FSMContext):
     """Handle invalid student ID input"""
     if message.text == strings.BTN_CANCEL:
         user = db.get_user(message.from_user.id)
-        await state.clear()
+        await state.set_state(StartStates.start)
         await message.answer(
             strings.CANCEL_MESSAGE,
             reply_markup=kb.get_main_menu_keyboard(user['verification_status'])

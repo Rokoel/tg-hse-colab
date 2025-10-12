@@ -5,7 +5,7 @@ import database as db
 import strings
 import keyboards as kb
 import utils
-from states import EditProfileStates, EventSelectionStates
+from states import EditProfileStates, EventSelectionStates, StartStates
 
 router = Router()
 
@@ -242,7 +242,7 @@ async def save_events(callback: CallbackQuery, state: FSMContext):
         "Выбери действие:",
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
     )
-    await state.clear()
+    await state.set_state(StartStates.start)
     await callback.answer()
 
 
@@ -253,13 +253,13 @@ async def finish_edit(message: Message, state: FSMContext):
         strings.EDIT_COMPLETE,
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
     )
-    await state.clear()
+    await state.set_state(StartStates.start)
 
 
 async def cancel_edit(message: Message, state: FSMContext):
     """Cancel editing"""
     user = db.get_user(message.from_user.id)
-    await state.clear()
+    await state.set_state(StartStates.start)
     await message.answer(
         strings.CANCEL_MESSAGE,
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])

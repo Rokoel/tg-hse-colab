@@ -5,7 +5,7 @@ import database as db
 import strings
 import keyboards as kb
 import utils
-from states import MatchingStates
+from states import MatchingStates, StartStates
 
 router = Router()
 
@@ -95,7 +95,7 @@ async def like_profile(message: Message, state: FSMContext):
             strings.MATCHING_NO_USERS,
             reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
         )
-        await state.clear()
+        await state.set_state(StartStates.start)
 
 
 @router.message(MatchingStates.browsing, F.text == strings.BTN_DISLIKE)
@@ -124,18 +124,83 @@ async def dislike_profile(message: Message, state: FSMContext):
             strings.MATCHING_NO_USERS,
             reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
         )
-        await state.clear()
+        await state.set_state(StartStates.start)
 
 
 @router.message(MatchingStates.browsing, F.text == strings.BTN_CANCEL)
 async def cancel_search(message: Message, state: FSMContext):
     """Cancel search and return to main menu"""
     user = db.get_user(message.from_user.id)
-    await state.clear()
+    await state.set_state(StartStates.start)
     await message.answer(
         "Поиск остановлен.",
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
     )
+
+
+@router.message(MatchingStates.browsing, F.text == strings.BTN_REPORT)
+async def report_profile(message: Message, state: FSMContext):
+    """Report current profile to admins"""
+    data = await state.get_data()
+    current_index = data.get('current_index', 0)
+    matches = data.get('matches', [])
+    
+    if current_index >= len(matches):
+        return
+    
+    reported_user = matches[current_index]
+    reporter = db.get_user(message.from_user.id)
+    
+    if not reporter:
+        return
+    
+    # Send report to admin chat
+    await send_report_to_admins(message, reporter, reported_user)
+    
+    # Notify user
+    await message.answer(strings.REPORT_SENT)
+
+
+async def send_report_to_admins(message: Message, reporter: dict, reported_user: dict):
+    """Send user report to admin chat"""
+    import config
+    
+    # Format admin message
+    reporter_name = reporter['name']
+    reporter_username = f"@{reporter['username']}" if reporter['username'] else "нет username"
+    
+    reported_name = reported_user['name']
+    reported_username = f"@{reported_user['username']}" if reported_user['username'] else "нет username"
+    
+    admin_text = strings.ADMIN_NEW_REPORT.format(
+        reporter_name=f"{reporter_name} ({reporter_username})",
+        reporter_id=reporter['user_id'],
+        reported_name=f"{reported_name} ({reported_username})",
+        reported_id=reported_user['user_id']
+    )
+    admin_text += "\n\nПрофиль обвиняемого:\n" + utils.format_profile(reported_user, show_verification=True)
+    
+    # Send reported user's profile with photo if available
+    if reported_user['photo_id']:
+        try:
+            await message.bot.send_photo(
+                chat_id=config.ADMIN_CHAT_ID,
+                photo=reported_user['photo_id'],
+                caption=admin_text,
+                reply_markup=kb.get_admin_report_keyboard(reported_user['user_id'], reporter['user_id'])
+            )
+        except Exception:
+            await message.bot.send_message(
+                chat_id=config.ADMIN_CHAT_ID,
+                text=admin_text,
+                reply_markup=kb.get_admin_report_keyboard(reported_user['user_id'], reporter['user_id'])
+            )
+    else:
+        await message.bot.send_message(
+            chat_id=config.ADMIN_CHAT_ID,
+            text=admin_text,
+            reply_markup=kb.get_admin_report_keyboard(reported_user['user_id'], reporter['user_id'])
+        )
 
 
 async def show_profile_at_index(message: Message, state: FSMContext, index: int):

@@ -6,17 +6,19 @@ import database as db
 import strings
 import keyboards as kb
 import utils
-from states import RegistrationStates
+from states import RegistrationStates, StartStates
 import config
 import os
 
 router = Router()
 
 
+# @router.message(StartStates.start)
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
     """Handle /start command"""
-    await state.clear()
+
+    await state.set_state(StartStates.start)
     
     # Check if user is banned
     if db.user_exists(message.from_user.id) and db.is_user_banned(message.from_user.id):
@@ -203,12 +205,12 @@ async def complete_registration(message: Message, state: FSMContext, photo_id: s
         reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
     )
     
-    await state.clear()
+    await state.set_state(StartStates.start)
 
 
 async def cancel_registration(message: Message, state: FSMContext):
     """Cancel registration"""
-    await state.clear()
+    await state.set_state(StartStates.start)
     await message.answer(
         strings.CANCEL_MESSAGE,
         reply_markup=kb.get_start_keyboard() if not db.user_exists(message.from_user.id) else None
@@ -218,12 +220,8 @@ async def cancel_registration(message: Message, state: FSMContext):
 @router.message(Command("cancel"))
 async def cmd_cancel(message: Message, state: FSMContext):
     """Handle /cancel command"""
-    current_state = await state.get_state()
-    if current_state is None:
-        await message.answer("Нечего отменять.")
-        return
-    
-    await state.clear()
+
+    await state.set_state(StartStates.start)
     user = db.get_user(message.from_user.id)
     if user:
         await message.answer(
@@ -232,3 +230,18 @@ async def cmd_cancel(message: Message, state: FSMContext):
         )
     else:
         await message.answer(strings.CANCEL_MESSAGE)
+
+@router.message(StateFilter(None))
+async def handle_unexpected(message: Message):
+    """Handle unexpected messages when not in a state"""
+    if db.user_exists(message.from_user.id):
+        user = db.get_user(message.from_user.id)
+        await message.answer(
+            strings.LOST_STATE,
+            reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
+        )
+    else:
+        await message.answer(
+            strings.LOST_STATE,
+            reply_markup=kb.get_start_keyboard()
+        )

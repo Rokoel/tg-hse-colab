@@ -83,9 +83,19 @@ ADMIN_NEW_VERIFICATION = """
 ID пользователя: {user_id}
 """
 
+ADMIN_NEW_REPORT = """
+⚠️ Жалоба на пользователя
+
+Отправитель: {reporter_name} (ID: {reporter_id})
+Обвиняемый: {reported_name} (ID: {reported_id})
+"""
+
 ADMIN_VERIFICATION_APPROVED = "✅ Верификация подтверждена администратором {admin_name}"
 ADMIN_VERIFICATION_DENIED = "❌ Верификация отклонена администратором {admin_name}"
 ADMIN_USER_BANNED = "🚫 Пользователь заблокирован администратором {admin_name}"
+ADMIN_REPORT_USER_BANNED = "🚫 Пользователь заблокирован администратором {admin_name} по жалобе"
+ADMIN_REPORT_DISMISSED = "✅ Жалоба отклонена администратором {admin_name}"
+REPORT_SENT = "✅ Жалоба отправлена администраторам."
 
 # Button texts
 BTN_BEGIN_REGISTRATION = "Готово!"
@@ -102,12 +112,15 @@ BTN_NEXT = "Далее ➡️"
 BTN_PREVIOUS = "⬅️ Назад"
 BTN_LIKE = "❤️ Нравится"
 BTN_DISLIKE = "👎 Не нравится"
+BTN_REPORT = "⚠️ Пожаловаться"
 BTN_CANCEL = "Отменить"
 
 # Admin button texts
 BTN_ADMIN_APPROVE = "✅ Подтвердить"
 BTN_ADMIN_DENY = "❌ Отклонить"
 BTN_ADMIN_BAN = "🚫 Заблокировать"
+BTN_ADMIN_BAN_REPORTED = "🚫 Заблокировать пользователя"
+BTN_ADMIN_DISMISS_REPORT = "✅ Отклонить жалобу"
 
 # Event types
 EVENT_TYPES = [
@@ -118,12 +131,15 @@ EVENT_TYPES = [
     "Выставка",
     "Кафе/Рестораны",
     "Активный отдых",
+    "Спорт",
     "Коворкинг",
     "Создание проектов",
+    "Компьютерные игры",
+    "Настольные игры",
 ]
 
 # Course options
-COURSES = ["1-ый курс", "2-ой курс", "3-ий курс", "4-ый курс"]
+COURSES = ["1-ый курс", "2-ой курс", "3-ий курс", "4-ый курс", "5-ый курс", "Магистратура", "Аспирантура"]
 
 # Cancel message
 CANCEL_MESSAGE = "❌ Действие отменено. Введи /start для начала."
@@ -132,3 +148,4 @@ CANCEL_MESSAGE = "❌ Действие отменено. Введи /start дл�
 USER_BLOCKED_MESSAGE = "🚫 Ты заблокирован и не можешь использовать бота. Если ты считаешь, что это ошибка, обратись к администраторам для разблокировки."
 USER_ALREADY_REGISTERED = "Ты уже зарегистрирован! Используй главное меню для навигации."
 PROFILE_NOT_FOUND = "Профиль не найден. Используй /start для начала регистрации."
+LOST_STATE = "Похоже, я потерял прогресс твоей последней команды в связи с обновлением бота. Пожалуйста, продолжи, используя /start или /cancel."

@@ -111,9 +111,10 @@ def get_matching_keyboard(has_previous: bool, has_next: bool) -> ReplyKeyboardMa
     
     builder.add(KeyboardButton(text=strings.BTN_LIKE))
     builder.add(KeyboardButton(text=strings.BTN_DISLIKE))
+    builder.add(KeyboardButton(text=strings.BTN_REPORT))
     builder.add(KeyboardButton(text=strings.BTN_CANCEL))
     
-    builder.adjust(2, 2, 1)
+    builder.adjust(2, 2, 1, 1)
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -131,6 +132,20 @@ def get_admin_verification_keyboard(user_id: int) -> InlineKeyboardMarkup:
     builder.add(InlineKeyboardButton(
         text=strings.BTN_ADMIN_BAN,
         callback_data=f"admin_ban_{user_id}"
+    ))
+    builder.adjust(1)
+    return builder.as_markup()
+
+def get_admin_report_keyboard(reported_user_id: int, reporter_user_id: int) -> InlineKeyboardMarkup:
+    """Admin keyboard for user reports"""
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(
+        text=strings.BTN_ADMIN_BAN_REPORTED,
+        callback_data=f"admin_ban_report_{reported_user_id}_{reporter_user_id}"
+    ))
+    builder.add(InlineKeyboardButton(
+        text=strings.BTN_ADMIN_DISMISS_REPORT,
+        callback_data=f"admin_dismiss_report_{reported_user_id}_{reporter_user_id}"
     ))
     builder.adjust(1)
     return builder.as_markup()

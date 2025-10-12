@@ -4,6 +4,7 @@ import database as db
 import strings
 import utils
 import config
+from handlers import user_handlers
 
 router = Router()
 
@@ -115,6 +116,60 @@ async def deny_verification(callback: CallbackQuery):
     await callback.answer("Верификация отклонена!")
 
 
+@router.callback_query(F.data.startswith("admin_ban_report_"))
+async def ban_reported_user(callback: CallbackQuery):
+    """Ban reported user"""
+    # Check if in admin chat
+    if not is_admin_chat(callback.message.chat.id):
+        await callback.answer("Эта команда доступна только в админ-чате!", show_alert=True)
+        return
+    
+    reported_user_id = int(callback.data.split("admin_ban_report_")[1].split("_")[0])
+    reporter_user_id = int(callback.data.split("admin_ban_report_")[1].split("_")[1])
+    user = db.get_user(reported_user_id)
+    
+    if not user:
+        await callback.answer("Пользователь не найден!", show_alert=True)
+        return
+    
+    # Ban user
+    db.ban_user(reported_user_id)
+    
+    # Delete all photos
+    if user['photo_id']:
+        utils.delete_photo(reported_user_id, 'profile')
+    if user['student_id_photo']:
+        utils.delete_photo(reported_user_id, 'student_id')
+        db.remove_student_id_photo(reported_user_id)
+    
+    # Update admin message
+    admin_name = callback.from_user.first_name or "Admin"
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer(
+        strings.ADMIN_REPORT_USER_BANNED.format(admin_name=admin_name)
+    )
+    
+    # Notify users
+    try:
+        await callback.bot.send_message(
+            chat_id=reported_user_id,
+            text="🚫 Вы были заблокированы администрацией."
+        )
+    except Exception:
+        print("Caught exception while banning user")
+        pass  # User might have blocked the bot
+
+    try:
+        await callback.bot.send_message(
+            chat_id=reporter_user_id,
+            text="Ваша жалоба привела к блокировке пользователя, благодарим за помощь!"
+        )
+    except Exception:
+        pass  # User might have blocked the bot
+    
+    await callback.answer("Пользователь заблокирован!")
+
+
 @router.callback_query(F.data.startswith("admin_ban_"))
 async def ban_user(callback: CallbackQuery):
     """Ban user from using the bot"""
@@ -123,6 +178,8 @@ async def ban_user(callback: CallbackQuery):
         await callback.answer("Эта команда доступна только в админ-чате!", show_alert=True)
         return
     
+    if (callback.data.startswith("admin_ban_report_")):
+        return
     user_id = int(callback.data.split("admin_ban_")[1])
     user = db.get_user(user_id)
     
@@ -157,3 +214,23 @@ async def ban_user(callback: CallbackQuery):
         pass  # User might have blocked the bot
     
     await callback.answer("Пользователь заблокирован!")
+
+
+@router.callback_query(F.data.startswith("admin_dismiss_report_"))
+async def dismiss_report(callback: CallbackQuery):
+    """Dismiss user report"""
+    # Check if in admin chat
+    if not is_admin_chat(callback.message.chat.id):
+        await callback.answer("Эта команда доступна только в админ-чате!", show_alert=True)
+        return
+    
+    user_id = int(callback.data.split("admin_dismiss_report_")[1])
+    
+    # Update admin message
+    admin_name = callback.from_user.first_name or "Admin"
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer(
+        strings.ADMIN_REPORT_DISMISSED.format(admin_name=admin_name)
+    )
+    
+    await callback.answer("Жалоба отклонена!")
