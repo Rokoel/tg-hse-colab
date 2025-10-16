@@ -41,9 +41,8 @@ def get_main_menu_keyboard(verification_status: str) -> ReplyKeyboardMarkup:
     builder.add(KeyboardButton(text=strings.BTN_VIEW_PROFILE))
     builder.add(KeyboardButton(text=strings.BTN_EDIT_PROFILE))
     builder.add(KeyboardButton(text=strings.BTN_CHOOSE_EVENTS))
-    
-    # Always show search button
     builder.add(KeyboardButton(text=strings.BTN_BEGIN_SEARCH))
+    builder.add(KeyboardButton(text=strings.BTN_VIEW_LIKES))
     
     # Show appropriate verification button
     if verification_status == 'not_verified':

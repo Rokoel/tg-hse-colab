@@ -281,3 +281,36 @@ def delete_user(user_id: int):
     
     conn.commit()
     conn.close()
+
+
+def get_users_who_liked(user_id: int) -> List[Dict[str, Any]]:
+    """Get list of users who liked the current user"""
+    conn = sqlite3.connect(config.DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Get users who liked this user, excluding those already liked back or disliked
+    cursor.execute('''
+        SELECT u.* FROM users u
+        INNER JOIN likes l ON u.user_id = l.from_user_id
+        WHERE l.to_user_id = ?
+        AND u.is_banned = 0
+        AND u.user_id NOT IN (
+            SELECT to_user_id FROM likes WHERE from_user_id = ?
+        )
+        AND u.user_id NOT IN (
+            SELECT to_user_id FROM dislikes WHERE from_user_id = ?
+        )
+        ORDER BY l.created_at DESC
+    ''', (user_id, user_id, user_id))
+    
+    rows = cursor.fetchall()
+    conn.close()
+    
+    users = []
+    for row in rows:
+        u = dict(row)
+        u['events'] = json.loads(u['events'])
+        users.append(u)
+    
+    return users

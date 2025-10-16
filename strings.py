@@ -67,6 +67,8 @@ EVENTS_SELECTED = "✅ Твои интересы сохранены!"
 # Matching messages
 MATCHING_NO_USERS = "😔 К сожалению, больше профилей нет. Попробуй позже!"
 MATCHING_PROFILE = "Профиль пользователя:"
+MATCHING_NO_LIKES = "😔 Новых лайков пока нет."
+NEW_LIKE_NOTIFICATION = "💖 У тебя новый лайк!"
 MATCH_NOTIFICATION = """
 🎉 У тебя новый мэтч!
 
@@ -108,6 +110,7 @@ BTN_ALREADY_VERIFIED = "✅ Верифицирован"
 BTN_VERIFICATION_PENDING = "⏳ Проверка"
 BTN_CHOOSE_EVENTS = "Выбрать мероприятия"
 BTN_BEGIN_SEARCH = "Начать поиск"
+BTN_VIEW_LIKES = "Посмотреть лайки"
 BTN_NEXT = "Далее ➡️"
 BTN_PREVIOUS = "⬅️ Назад"
 BTN_LIKE = "❤️ Нравится"

@@ -35,6 +35,7 @@ class EventSelectionStates(StatesGroup):
 class MatchingStates(StatesGroup):
     """States for browsing profiles"""
     browsing = State()
+    browsing_likes = State()
 
 class StartStates(StatesGroup):
     """State for lost progress"""

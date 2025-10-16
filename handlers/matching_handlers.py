@@ -80,6 +80,16 @@ async def like_profile(message: Message, state: FSMContext):
     # Add like and check for match
     is_match = db.add_like(message.from_user.id, liked_user['user_id'])
     
+    # Notify the liked user about the new like (unless it's a match)
+    if not is_match:
+        try:
+            await message.bot.send_message(
+                chat_id=liked_user['user_id'],
+                text=strings.NEW_LIKE_NOTIFICATION
+            )
+        except Exception:
+            pass  # User might have blocked the bot
+    
     if is_match:
         # Notify both users about the match
         await notify_match(message, liked_user)
@@ -201,6 +211,197 @@ async def send_report_to_admins(message: Message, reporter: dict, reported_user:
             text=admin_text,
             reply_markup=kb.get_admin_report_keyboard(reported_user['user_id'], reporter['user_id'])
         )
+
+
+@router.message(F.text == strings.BTN_VIEW_LIKES)
+async def view_likes(message: Message, state: FSMContext):
+    """View users who liked your profile"""
+    user = db.get_user(message.from_user.id)
+    if not user:
+        return
+    
+    # Get users who liked this user
+    users_who_liked = db.get_users_who_liked(message.from_user.id)
+    
+    if not users_who_liked:
+        await message.answer(
+            strings.MATCHING_NO_LIKES,
+            reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
+        )
+        return
+    
+    # Store likes in state
+    await state.update_data(
+        matches=users_who_liked,
+        current_index=0
+    )
+    await state.set_state(MatchingStates.browsing_likes)
+    
+    # Show first profile
+    await show_like_profile_at_index(message, state, 0)
+
+
+@router.message(MatchingStates.browsing_likes, F.text == strings.BTN_NEXT)
+async def next_like_profile(message: Message, state: FSMContext):
+    """Show next liked profile"""
+    data = await state.get_data()
+    current_index = data.get('current_index', 0)
+    matches = data.get('matches', [])
+    
+    if current_index + 1 < len(matches):
+        new_index = current_index + 1
+        await state.update_data(current_index=new_index)
+        await show_like_profile_at_index(message, state, new_index)
+    else:
+        await message.answer(strings.MATCHING_NO_LIKES)
+
+
+@router.message(MatchingStates.browsing_likes, F.text == strings.BTN_PREVIOUS)
+async def previous_like_profile(message: Message, state: FSMContext):
+    """Show previous liked profile"""
+    data = await state.get_data()
+    current_index = data.get('current_index', 0)
+    
+    if current_index > 0:
+        new_index = current_index - 1
+        await state.update_data(current_index=new_index)
+        await show_like_profile_at_index(message, state, new_index)
+
+
+@router.message(MatchingStates.browsing_likes, F.text == strings.BTN_LIKE)
+async def like_back_profile(message: Message, state: FSMContext):
+    """Like back a user who liked you"""
+    data = await state.get_data()
+    current_index = data.get('current_index', 0)
+    matches = data.get('matches', [])
+    
+    if current_index >= len(matches):
+        return
+    
+    liked_user = matches[current_index]
+    
+    # Add like - this will always be a match since they already liked us
+    is_match = db.add_like(message.from_user.id, liked_user['user_id'])
+    
+    if is_match:
+        # Notify both users about the match
+        await notify_match(message, liked_user)
+    
+    # Remove from list and show next
+    matches.pop(current_index)
+    
+    if not matches:
+        user = db.get_user(message.from_user.id)
+        await message.answer(
+            strings.MATCHING_NO_LIKES,
+            reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
+        )
+        await state.set_state(StartStates.start)
+    elif current_index >= len(matches):
+        # We were at the end, go to previous
+        new_index = len(matches) - 1
+        if new_index < 0:
+            new_index = 0
+        await state.update_data(matches=matches, current_index=new_index)
+        await show_like_profile_at_index(message, state, new_index)
+    else:
+        # Show current index (which is now the next profile)
+        await state.update_data(matches=matches)
+        await show_like_profile_at_index(message, state, current_index)
+
+
+@router.message(MatchingStates.browsing_likes, F.text == strings.BTN_DISLIKE)
+async def dislike_like_profile(message: Message, state: FSMContext):
+    """Dislike a user who liked you"""
+    data = await state.get_data()
+    current_index = data.get('current_index', 0)
+    matches = data.get('matches', [])
+    
+    if current_index >= len(matches):
+        return
+    
+    disliked_user = matches[current_index]
+    
+    # Add dislike
+    db.add_dislike(message.from_user.id, disliked_user['user_id'])
+    
+    # Remove from list and show next
+    matches.pop(current_index)
+    
+    if not matches:
+        user = db.get_user(message.from_user.id)
+        await message.answer(
+            strings.MATCHING_NO_LIKES,
+            reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
+        )
+        await state.set_state(StartStates.start)
+    elif current_index >= len(matches):
+        # We were at the end, go to previous
+        new_index = len(matches) - 1
+        if new_index < 0:
+            new_index = 0
+        await state.update_data(matches=matches, current_index=new_index)
+        await show_like_profile_at_index(message, state, new_index)
+    else:
+        # Show current index (which is now the next profile)
+        await state.update_data(matches=matches)
+        await show_like_profile_at_index(message, state, current_index)
+
+
+@router.message(MatchingStates.browsing_likes, F.text == strings.BTN_REPORT)
+async def report_like_profile(message: Message, state: FSMContext):
+    """Report a user who liked you"""
+    data = await state.get_data()
+    current_index = data.get('current_index', 0)
+    matches = data.get('matches', [])
+    
+    if current_index >= len(matches):
+        return
+    
+    reported_user = matches[current_index]
+    reporter = db.get_user(message.from_user.id)
+    
+    if not reporter:
+        return
+    
+    # Send report to admin chat
+    await send_report_to_admins(message, reporter, reported_user)
+    
+    # Notify user
+    await message.answer(strings.REPORT_SENT)
+
+
+@router.message(MatchingStates.browsing_likes, F.text == strings.BTN_CANCEL)
+async def cancel_view_likes(message: Message, state: FSMContext):
+    """Cancel viewing likes and return to main menu"""
+    user = db.get_user(message.from_user.id)
+    await state.set_state(StartStates.start)
+    await message.answer(
+        "Просмотр лайков завершен.",
+        reply_markup=kb.get_main_menu_keyboard(user['verification_status'])
+    )
+
+
+async def show_like_profile_at_index(message: Message, state: FSMContext, index: int):
+    """Show liked profile at specific index"""
+    data = await state.get_data()
+    matches = data.get('matches', [])
+    
+    if index >= len(matches):
+        return
+    
+    profile = matches[index]
+    profile_text = "💖 Этот пользователь лайкнул вас!\n\n" + utils.format_profile(profile, show_verification=True)
+    
+    # Determine which navigation buttons to show
+    has_previous = index > 0
+    has_next = index < len(matches) - 1
+    
+    await utils.send_profile_with_photo(message, profile, profile_text)
+    await message.answer(
+        f"Лайк {index + 1} из {len(matches)}",
+        reply_markup=kb.get_matching_keyboard(has_previous, has_next)
+    )
 
 
 async def show_profile_at_index(message: Message, state: FSMContext, index: int):

@@ -14,7 +14,10 @@ A Telegram bot for helping students network and connect with each other based on
   - Study program similarity (secondary)
   - Age proximity (tertiary)
 - **Like/Dislike System**: Browse all users (verified and unverified) and like/dislike profiles
+- **Like Notifications**: Users receive notifications when someone likes them
+- **View Who Liked You**: Browse through users who liked your profile with the same interface
 - **Match Notifications**: Both users are notified when they like each other
+- **Report System**: Users can report inappropriate profiles to admins
 - **Admin Panel**: Approve, deny, or ban users through an admin group chat
 
 ## Project Structure
@@ -103,9 +106,12 @@ python main.py
 4. **Edit Profile**: Update any field of your profile
 5. **Choose Events**: Select event types you're interested in
 6. **Search**: Browse other users immediately (no verification required)
-7. **Verify** (Optional): Submit student ID photo for verified status and higher visibility
-8. **Like/Dislike**: Swipe through profiles
-9. **Match**: Get notified when someone likes you back
+7. **View Likes**: See who liked your profile and respond to them
+8. **Like Notifications**: Get notified when someone likes you (💖 У тебя новый лайк!)
+9. **Verify** (Optional): Submit student ID photo for verified status and higher visibility
+10. **Like/Dislike**: Swipe through profiles in search or in your likes
+11. **Report**: Report inappropriate profiles to admins
+12. **Match**: Get notified when someone likes you back
 
 ### For Admins
 
@@ -137,8 +143,9 @@ Admins can:
 - `created_at`: Registration timestamp
 
 ### likes
-- Tracks user likes
+- Tracks user likes with timestamps
 - `from_user_id` → `to_user_id`
+- Used for matching and "who liked you" feature
 
 ### dislikes
 - Tracks user dislikes
@@ -158,7 +165,18 @@ The bot automatically manages photos:
   - Verification is approved/denied (student ID deleted)
   - User is banned
 
-## Matching Algorithm
+## Key Features Explained
+
+### Like Notifications & Viewing
+When someone likes your profile:
+- You receive an instant notification: "💖 У тебя новый лайк!"
+- Access "Посмотреть лайкнувших" from the main menu
+- Browse through people who liked you with the same interface as regular search
+- Like them back for an instant match
+- Dislike or report if needed
+- Users disappear from the list once you respond to them
+
+### Matching Algorithm
 
 Users are sorted by compatibility score:
 
