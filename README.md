@@ -6,6 +6,12 @@ The bot was deployed for real users and at one point had **more than 100 registe
 
 Built with **Python, aiogram 3 and SQLite**.
 
+## Screenshots
+
+| Profile editing and likes | Event and activity interests |
+| --- | --- |
+| <img src="docs/media/tg-hse-colab1.png" alt="Telegram bot profile editing and likes" width="320"> | <img src="docs/media/tg-hse-colab2.png" alt="Telegram bot event and activity interest selection" width="320"> |
+
 ## Features
 
 - Multi-step registration using aiogram FSM
@@ -34,7 +40,7 @@ Users who have already been liked or disliked are excluded from future search re
 ## Project structure
 
 ```text
-tg_hse_colab/
+tg-hse-colab/
 ├── main.py
 ├── config.py
 ├── database.py
@@ -62,8 +68,8 @@ Requires Python 3.9+ and a Telegram bot token.
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/Rokoel/tg_hse_colab.git
-cd tg_hse_colab
+git clone https://github.com/Rokoel/tg-hse-colab.git
+cd tg-hse-colab
 pip install -r requirements.txt
 ```
 
